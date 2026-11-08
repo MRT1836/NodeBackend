@@ -16,6 +16,29 @@ const getAllUser = async (req, res, next) => {
     }
 };
 
+
+const logIn = async (req, res, next) => {
+    const { email, password } = req.body;
+
+    try {
+        const existingUser = await User.findOne({ email });
+        if (!existingUser) {
+            return res.status(404).json(new ApiError(404, "User not found"));
+        }
+
+        const isPasswordCorrect = bcrypt.compareSync(password, existingUser.password);
+        if (!isPasswordCorrect) {
+            return res.status(400).json(new ApiError(400, "Incorrect Password"));
+        }
+
+        return res.status(200).json(new ApiResponse(200, { user: existingUser }, "Login successful"));
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json(new ApiError(500, "Server error while logging in"));
+    }
+};
+
+
 const signUp = async (req, res, next) => {
     const { name, email, password } = req.body;
 
@@ -38,27 +61,6 @@ const signUp = async (req, res, next) => {
     } catch (e) {
         console.error(e);
         return res.status(500).json(new ApiError(500, "Server error while signing up"));
-    }
-};
-
-const logIn = async (req, res, next) => {
-    const { email, password } = req.body;
-
-    try {
-        const existingUser = await User.findOne({ email });
-        if (!existingUser) {
-            return res.status(404).json(new ApiError(404, "User not found"));
-        }
-
-        const isPasswordCorrect = bcrypt.compareSync(password, existingUser.password);
-        if (!isPasswordCorrect) {
-            return res.status(400).json(new ApiError(400, "Incorrect Password"));
-        }
-
-        return res.status(200).json(new ApiResponse(200, { user: existingUser }, "Login successful"));
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json(new ApiError(500, "Server error while logging in"));
     }
 };
 
